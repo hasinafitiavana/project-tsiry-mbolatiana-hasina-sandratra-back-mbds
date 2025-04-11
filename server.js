@@ -10,7 +10,7 @@ mongoose.Promise = global.Promise;
 //mongoose.set('debug', true);
 
 // TODO remplacer toute cette chaine par l'URI de connexion à votre propre base dans le cloud
-const uri = '...';
+const uri = 'mongodb+srv://mbds_react:mbds_react123@cluster0.pxltvsh.mongodb.net/hasina';
 
 const options = {};
 
