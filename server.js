@@ -43,6 +43,11 @@ app.route(prefix + '/students')
     .get(student.getAll)
     .post(student.create);
 
+
+app.route(prefix + '/students/:id')
+    .put(student.updateStudent)
+    .delete(student.deleteStudent);
+
 app.route(prefix + '/courses')
     .get(course.getAll)
     .post(course.create);

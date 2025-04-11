@@ -23,4 +23,34 @@ function create(req, res) {
     });
 }
 
-module.exports = {getAll, create};
+function deleteStudent(req, res) {
+    console.log("ID reçu pour suppression :", req.params.id);
+    Student.findByIdAndDelete(req.params.id)
+        .then((student) => {
+            if (student) {
+                res.json({message: `Student with id ${req.params.id} deleted!`});
+            } else {
+                res.status(404).send({message: 'Student not found'});
+            }
+        })
+        .catch((err) => {
+            res.status(500).send(err);
+        });
+}
+
+function updateStudent(req, res) {
+    console.log("ID reçu pour mise à jour :", req.params.id);
+    Student.findByIdAndUpdate(req.params.id, req.body, {new: true, runValidators: true})
+        .then((student) => {
+            if (student) {
+                res.json({message: `Student with id ${req.params.id} updated!`, student});
+            } else {
+                res.status(404).send({message: 'Student not found'});
+            }
+        })
+        .catch((err) => {
+            res.status(500).send({error: 'Failed to update student', details: err.message});
+        });
+}
+
+module.exports = {getAll, create, deleteStudent, updateStudent};
