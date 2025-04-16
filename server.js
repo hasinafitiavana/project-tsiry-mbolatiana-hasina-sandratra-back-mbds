@@ -16,8 +16,8 @@ const options = {};
 
 mongoose.connect(uri, options)
     .then(() => {
-            console.log("Connexion à la base OK");
-        },
+        console.log("Connexion à la base OK");
+    },
         err => {
             console.log('Erreur de connexion: ', err);
         });
@@ -31,7 +31,7 @@ app.use(function (req, res, next) {
 });
 
 // Pour les formulaires
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 let port = process.env.PORT || 8010;
@@ -51,6 +51,11 @@ app.route(prefix + '/students/:id')
 app.route(prefix + '/courses')
     .get(course.getAll)
     .post(course.create);
+
+app.route(prefix + '/courses/:id')
+    .put(course.updateCourse)
+    .delete(course.deleteCourse);
+
 
 app.route(prefix + '/grades')
     .get(grade.getAll)
