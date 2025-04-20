@@ -5,12 +5,20 @@ let student = require('./routes/students');
 let course = require('./routes/courses');
 let grade = require('./routes/grades');
 
+require('dotenv').config();
+
+
+const userRouter=require("./routes/users");
+
 let mongoose = require('mongoose');
+const { authenticateTokenMiddleware } = require('./middlewares/authMiddleware');
+const { permissionMiddleware } = require('./middlewares/permissionMiddleware');
+
 mongoose.Promise = global.Promise;
 //mongoose.set('debug', true);
 
 // TODO remplacer toute cette chaine par l'URI de connexion à votre propre base dans le cloud
-const uri = 'mongodb+srv://mbds_react:mbds_react123@cluster0.pxltvsh.mongodb.net/hasina';
+const uri = process.env.DATABASE_URL;
 
 const options = {};
 
@@ -39,6 +47,10 @@ let port = process.env.PORT || 8010;
 // les routes
 const prefix = '/api';
 
+app.use(prefix+"/users",userRouter);
+
+app.use(authenticateTokenMiddleware, permissionMiddleware);
+
 app.route(prefix + '/students')
     .get(student.getAll)
     .post(student.create);
@@ -64,6 +76,11 @@ app.route(prefix + '/grades')
 app.route(prefix + '/grades/:id')
     .put(grade.update)
     .delete(grade.deleteGrade);
+
+    
+app.use(function(req, res, next) {
+    next(createError(404));
+});
 
 // On démarre le serveur
 app.listen(port, "0.0.0.0");
