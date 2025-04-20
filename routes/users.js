@@ -7,6 +7,8 @@ const bcrypt = require("bcryptjs");
 router.post('/login', async function login(req, res) {
     try {
         const { email, password } = req.body
+        console.log({email,password});
+        
         await User.findOne({ email }).then((user) => {
             if (user) {
                 if (bcrypt.compareSync(password, user.password)) {
