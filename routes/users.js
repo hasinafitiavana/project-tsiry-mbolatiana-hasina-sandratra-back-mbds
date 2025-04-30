@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const router = Router();
-const User = require("../model/User");
+const User = require("../model/user");
 const { generateAccessToken, generateRefreshToken } = require("../utils/auth");
 const bcrypt = require("bcryptjs");
 
@@ -18,8 +18,7 @@ router.post('/login', async function login(req, res) {
 
                     res.setHeader('x-access-token', accessToken);
                     res.setHeader('x-refresh-token', refreshToken);
-
-                    return res.status(200).json({ message: 'Login successful' });
+                    return res.status(200).json(u);
                 } else {
                     res.status(401).json({ error: 'Email ou mot de passe incorrect' });
                 }
