@@ -52,6 +52,23 @@ router.post("/refresh-token", async function refreshToken(req, res) {
     }
 })
 
+router.get("/", async function getAllUsers(req, res) {
+    try {
+        // console.log("get all users",req.query);
+        const users = await User.find({
+            roles : req.query.role
+        });
+        const data = users.map((user) => {
+            const { password,roles, ...u } = user.toObject();
+            return u;
+        });
+        res.status(200).json(data);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+})
+
 
 
 module.exports = router;
