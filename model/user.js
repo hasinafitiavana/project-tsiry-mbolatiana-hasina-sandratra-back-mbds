@@ -6,7 +6,8 @@ require("./role");
 const UserSchema=new Schema({
     lastname:{
         type:String,
-        required:[true, "Nom obligatoire"]
+        required:[true, "Nom obligatoire"],
+        unique : true
     },
     firstname:{
         type:String,
