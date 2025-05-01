@@ -69,6 +69,31 @@ router.get("/", async function getAllUsers(req, res) {
     }
 })
 
+router.post("/", async function createUser(req, res) {
+    try {
+        console.log("create user",req.body);
+        const { email, password,password2, firstname, lastname,role } = req.body;
+        if (password !== password2) {
+            throw new Error("Les mots de passe ne correspondent pas");
+        }
+        const hashedPassword = bcrypt.hashSync(password,10);
+        const hashedPassword2 = bcrypt.hashSync(password2,10);
+        const newUser = new User({
+            email,
+            password: hashedPassword,
+            firstname,
+            lastname,
+            password2: hashedPassword2,
+            roles: [role]
+        });
+        await newUser.save();
+        res.status(201).json({ message: 'User created successfully' });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ "error": error.message});
+    }
+})
+
 
 
 module.exports = router;
