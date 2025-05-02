@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
 
-const NON_SECURE_PATH = ["/api/users/login"];
+const NON_SECURE_PATH = ["/api/users/login","/auth/google","/auth/google/callback"];
 
 const authenticateTokenMiddleware = (req, res, next) => {
   if (NON_SECURE_PATH.includes(req.path)) {

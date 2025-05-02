@@ -14,6 +14,9 @@ let mongoose = require('mongoose');
 const { authenticateTokenMiddleware } = require('./middlewares/authMiddleware');
 const { permissionMiddleware } = require('./middlewares/permissionMiddleware');
 
+const passport = require('./utils/googleAuth');
+const { generateAccessToken, generateRefreshToken } = require('./utils/auth');
+
 mongoose.Promise = global.Promise;
 //mongoose.set('debug', true);
 
@@ -53,7 +56,8 @@ const prefix = '/api';
 
 app.use(prefix+"/users",userRouter);
 
-app.use(authenticateTokenMiddleware, permissionMiddleware);
+// app.use(authenticateTokenMiddleware, permissionMiddleware);
+app.use(authenticateTokenMiddleware);
 
 app.route(prefix + '/students')
     .get(student.getAll)
@@ -81,12 +85,26 @@ app.route(prefix + '/grades/:id')
     .put(grade.update)
     .delete(grade.deleteGrade);
 
-    
+app.get('/auth/google', passport.authenticate('google', {
+  scope: ['profile', 'email'],
+  prompt: 'select_account' 
+}));
+
+app.get('/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/', session: false }),
+  function(req, res) {
+    const user = req.user;
+
+    const { password, ...u } = user.toObject();
+    const accessToken = generateAccessToken(u);
+    const refreshToken = generateRefreshToken(u);
+    res.redirect(`http://localhost:5173/oauth-callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+  });
+
 app.use(function(req, res, next) {
     next(createError(404));
 });
 
-// On démarre le serveur
 app.listen(port, "0.0.0.0");
 console.log('Serveur démarré sur http://localhost:' + port);
 
