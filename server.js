@@ -65,9 +65,16 @@ app.route(prefix + '/students')
 
 
 app.route(prefix + '/students/:id')
+    .get(student.get)
     .put(student.updateStudent)
     .delete(student.deleteStudent);
 
+app.route(prefix + '/students/:id/folder')
+    .get(student.getStudentFolder);
+    
+app.route(prefix + '/students/:id/years')
+    .get(student.getStudiedYears);
+    
 app.route(prefix + '/courses')
     .get(course.getAll)
     .post(course.create);
