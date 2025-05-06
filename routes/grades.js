@@ -118,4 +118,73 @@ async function getAvgGradePerSubjectPerYear(req, res) {
     }
 }
 
-module.exports = { getAll, create, update, deleteGrade, getScolarityYears, getAvgGradePerSubjectPerYear };
+async function getMostAndLeastTakenCourses(req, res) {
+    try {
+        const results = await Grade.aggregate([
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$date" }, // Extract the year from the date
+                        course: "$course"        // Group by course
+                    },
+                    count: { $sum: 1 }          // Count the number of grades for each course
+                }
+            },
+            {
+                $lookup: {
+                    from: "courses",            // Join with the Course collection
+                    localField: "_id.course",
+                    foreignField: "_id",
+                    as: "courseDetails"
+                }
+            },
+            {
+                $project: {
+                    year: "$_id.year",
+                    course: { $arrayElemAt: ["$courseDetails.name", 0] }, // Extract course name
+                    count: 1
+                }
+            },
+            { $sort: { year: 1, count: -1 } } // Sort by year and count (descending)
+        ]);
+
+        // Group results by year and find most and least taken courses
+        const groupedResults = results.reduce((acc, curr) => {
+            const year = curr.year;
+            if (!acc[year]) {
+                acc[year] = { mostTaken: [], leastTaken: [], maxCount: 0, minCount: Infinity };
+            }
+
+            if (curr.count > acc[year].maxCount) {
+                acc[year].mostTaken = [curr];
+                acc[year].maxCount = curr.count;
+            } else if (curr.count === acc[year].maxCount) {
+                acc[year].mostTaken.push(curr);
+            }
+
+            if (curr.count < acc[year].minCount) {
+                acc[year].leastTaken = [curr];
+                acc[year].minCount = curr.count;
+            } else if (curr.count === acc[year].minCount) {
+                acc[year].leastTaken.push(curr);
+            }
+
+            return acc;
+        }, {});
+
+        // Format the response
+        const response = Object.entries(groupedResults).map(([year, data]) => ({
+            year: parseInt(year),
+            mostTaken: data.mostTaken.map(course => ({ course: course.course, count: course.count })),
+            leastTaken: data.leastTaken.map(course => ({ course: course.course, count: course.count }))
+        }));
+
+        console.log(response)
+        res.status(200).send(response);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ message: "Failed to fetch most and least taken courses", error: err.message });
+    }
+}
+
+module.exports = { getAll, create, update, deleteGrade, getScolarityYears, getAvgGradePerSubjectPerYear, getMostAndLeastTakenCourses };

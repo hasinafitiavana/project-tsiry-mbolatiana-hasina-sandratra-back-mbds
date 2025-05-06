@@ -89,6 +89,9 @@ app.route(prefix + '/grades')
     .get(grade.getAll)
     .post(grade.create);
 
+app.route(prefix + '/grades/least-most-taken-courses')
+    .get(grade.getMostAndLeastTakenCourses);
+
 app.route(prefix + '/grades/years')
     .get(grade.getScolarityYears);
 
