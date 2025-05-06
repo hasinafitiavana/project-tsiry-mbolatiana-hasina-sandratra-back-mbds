@@ -8,9 +8,7 @@ const authenticateTokenMiddleware = (req, res, next) => {
   if (NON_SECURE_PATH.includes(req.path)) {
     return next();
   }
-  console.log('tonga ato')
   const authHeader = req.headers['authorization'];
-  console.log('tonga ato22222222222', req.headers)
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Authorization header must start with Bearer' });
   }

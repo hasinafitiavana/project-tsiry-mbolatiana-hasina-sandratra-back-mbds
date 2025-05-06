@@ -20,7 +20,6 @@ const { generateAccessToken, generateRefreshToken } = require('./utils/auth');
 mongoose.Promise = global.Promise;
 //mongoose.set('debug', true);
 
-// TODO remplacer toute cette chaine par l'URI de connexion à votre propre base dans le cloud
 const uri = process.env.DATABASE_URL;
 
 const options = {};
@@ -63,10 +62,19 @@ app.route(prefix + '/students')
     .get(student.getAll)
     .post(student.create);
 
+app.route(prefix + '/students/ranks')
+    .get(student.getAllStudentsRanks);
 
 app.route(prefix + '/students/:id')
+    .get(student.get)
     .put(student.updateStudent)
     .delete(student.deleteStudent);
+
+app.route(prefix + '/students/:id/folder')
+    .get(student.getStudentFolder);
+    
+app.route(prefix + '/students/:id/years')
+    .get(student.getStudiedYears);
 
 app.route(prefix + '/courses')
     .get(course.getAll)
@@ -80,6 +88,15 @@ app.route(prefix + '/courses/:id')
 app.route(prefix + '/grades')
     .get(grade.getAll)
     .post(grade.create);
+
+app.route(prefix + '/grades/least-most-taken-courses')
+    .get(grade.getMostAndLeastTakenCourses);
+
+app.route(prefix + '/grades/years')
+    .get(grade.getScolarityYears);
+
+app.route(prefix + '/grades/avg-per-course')
+    .get(grade.getAvgGradePerSubjectPerYear);
 
 app.route(prefix + '/grades/:id')
     .put(grade.update)
@@ -101,6 +118,9 @@ app.get('/auth/google/callback',
     res.redirect(`http://localhost:5173/oauth-callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
   });
 
+app.route(prefix + '/grades/years')
+    .get(grade.getScolarityYears);
+    
 app.use(function(req, res, next) {
     next(createError(404));
 });
