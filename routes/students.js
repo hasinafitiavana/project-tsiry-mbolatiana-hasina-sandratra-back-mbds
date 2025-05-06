@@ -110,4 +110,15 @@ async function getStudiedYears(req, res) {
     }
 }
 
-module.exports = { getAll, get, create, deleteStudent, updateStudent, getStudentFolder, getStudiedYears };
+async function getAllStudentsRanks(req,res) {
+    const year = req.query.year || null;
+    try {
+        const ranks = await User.getAllStudentsRanks(year);
+        res.send(ranks);
+    } catch (err) {
+        res.status(500).send({ message: 'Failed to fetch ranks', error: err.message });
+    }
+    
+}
+
+module.exports = { getAll, get, create, deleteStudent, updateStudent, getStudentFolder, getStudiedYears, getAllStudentsRanks };

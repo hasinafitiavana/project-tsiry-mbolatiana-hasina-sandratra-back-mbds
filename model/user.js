@@ -36,45 +36,65 @@ const UserSchema = new Schema({
     }],
 });
 
-// Function to calculate student rank
-UserSchema.statics.getStudentRank = async function (studentId, year=null) {
+UserSchema.statics.getAllStudentsRanks = async function (year = null) {
+    try {
+        let query = {};
+        if (year) {
+            const startDate = new Date(`${year}-01-01`);
+            const endDate = new Date(`${year}-12-31`);
+            query = { date: { $gte: startDate, $lte: endDate } };
+        }
+
+        const grades = await Grade.find(query).populate('student', 'firstname lastname');
+
+        const studentTotals = {};
+        grades.forEach(grade => {
+            const student = grade.student._id.toString();
+            if (!studentTotals[student]) {
+                studentTotals[student] = {
+                    total: 0,
+                    firstname: grade.student.firstname,
+                    lastname: grade.student.lastname
+                };
+            }
+            studentTotals[student].total += grade.grade;
+        });
+
+        // Sort students by total grades in descending order
+        const rankedStudents = Object.entries(studentTotals)
+            .sort(([, a], [, b]) => b.total - a.total)
+            .map(([studentId, data], index) => ({
+                _id:studentId,
+                firstname: data.firstname,
+                lastname: data.lastname,
+                rank: index + 1,
+                total: data.total
+            }));
+
+
+        return rankedStudents;
+    } catch (err) {
+        throw new Error(`Failed to calculate ranks: ${err.message}`);
+    }
+};
+
+UserSchema.statics.getStudentRank = async function (studentId, year = null) {
     try {
         if (!studentId) {
             throw new Error('Student ID is required');
         }
 
-        if (year){
-            const startDate = new Date(`${year}-01-01`);
-            const endDate = new Date(`${year}-12-31`);
-            query = { date: { $gte: startDate, $lte: endDate } }
-        }
-
-        // Query grades for all students within the year
-        const grades = await Grade.find(query);
-
-        // Calculate total grades for each student
-        const studentTotals = {};
-        grades.forEach(grade => {
-            const student = grade.student.toString();
-            if (!studentTotals[student]) {
-                studentTotals[student] = 0;
-            }
-            studentTotals[student] += grade.grade;
-        });
-
-        // Sort students by total grades in descending order
-        const rankedStudents = Object.entries(studentTotals)
-            .sort(([, totalA], [, totalB]) => totalB - totalA)
-            .map(([studentId], index) => ({ studentId, rank: index + 1 }));
-
-        // Find the rank of the specific student
-        const studentRank = rankedStudents.find(s => s.studentId === studentId);
+        const allRanks = await this.getAllStudentsRanks(year);
+        const studentRank = allRanks.find(s => s._id === studentId);
+        
 
         if (studentRank) {
-            return { rank: studentRank.rank, total: studentTotals[studentId] };
+            return { rank: studentRank.rank, total: studentRank.total };
+        } else {
+            throw new Error('Student not found in the ranking');
         }
     } catch (err) {
-        throw new Error(`Failed to calculate rank: ${err.message}`);
+        throw new Error(`Failed to calculate student rank: ${err.message}`);
     }
 };
 

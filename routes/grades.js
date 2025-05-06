@@ -69,4 +69,17 @@ function deleteGrade(req, res) {
         });
 }
 
-module.exports = {getAll, create, update, deleteGrade};
+function getScolarityYears(req, res) {
+    Grade.find()
+        .distinct('date')
+        .then((years) => {
+            const uniqueYears = [...new Set(years.map(date => date.getFullYear()))].sort((a, b) => b - a);;
+            res.send(uniqueYears);
+        })
+        .catch((err) => {
+            res.status(500).send({ message: 'Unable to fetch years', error: err.message });
+        });
+}
+
+
+module.exports = {getAll, create, update, deleteGrade, getScolarityYears};
