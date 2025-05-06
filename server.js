@@ -89,6 +89,12 @@ app.route(prefix + '/grades')
     .get(grade.getAll)
     .post(grade.create);
 
+app.route(prefix + '/grades/years')
+    .get(grade.getScolarityYears);
+
+app.route(prefix + '/grades/avg-per-course')
+    .get(grade.getAvgGradePerSubjectPerYear);
+
 app.route(prefix + '/grades/:id')
     .put(grade.update)
     .delete(grade.deleteGrade);

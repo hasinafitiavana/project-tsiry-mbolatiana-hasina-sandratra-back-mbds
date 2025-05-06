@@ -1,4 +1,4 @@
-let {Grade, Student, Course} = require('../model/schemas');
+let { Grade, Student, Course } = require('../model/schemas');
 
 function getAll(req, res) {
     Grade.find()
@@ -7,8 +7,8 @@ function getAll(req, res) {
         .then((grades) => {
             res.send(grades);
         }).catch((err) => {
-        res.send(err);
-    });
+            res.send(err);
+        });
 }
 
 
@@ -22,12 +22,12 @@ function create(req, res) {
 
     grade.save()
         .then((grade) => {
-                res.json({message: `grade saved with id ${grade.id}!`});
-            }
+            res.json({ message: `grade saved with id ${grade.id}!` });
+        }
         ).catch((err) => {
-        console.log(err);
-        res.status(400).send('cant post grade ', err.message);
-    });
+            console.log(err);
+            res.status(400).send('cant post grade ', err.message);
+        });
 }
 function update(req, res) {
     const gradeId = req.params.id;
@@ -42,16 +42,16 @@ function update(req, res) {
         },
         { new: true, runValidators: true }
     )
-    .then((updatedGrade) => {
-        if (!updatedGrade) {
-            return res.status(404).send({ message: 'Grade not found' });
-        }
-        res.send(updatedGrade);
-    })
-    .catch((err) => {
-        console.error(err);
-        res.status(400).send({ message: 'Unable to update grade', error: err.message });
-    });
+        .then((updatedGrade) => {
+            if (!updatedGrade) {
+                return res.status(404).send({ message: 'Grade not found' });
+            }
+            res.send(updatedGrade);
+        })
+        .catch((err) => {
+            console.error(err);
+            res.status(400).send({ message: 'Unable to update grade', error: err.message });
+        });
 }
 function deleteGrade(req, res) {
     const gradeId = req.params.id;
@@ -81,5 +81,41 @@ function getScolarityYears(req, res) {
         });
 }
 
+async function getAvgGradePerSubjectPerYear(req, res) {
+    try {
+        const results = await Grade.aggregate([
+            {
+                $group: {
+                    _id: {
+                        year: { $year: "$date" },
+                        subject: "$course"
+                    },
+                    averageGrade: { $avg: "$grade" }
+                }
+            },
+            {
+                $lookup: {
+                    from: "courses", 
+                    localField: "_id.subject",
+                    foreignField: "_id",
+                    as: "courseDetails"
+                }
+            },
+            {
+                $project: {
+                    year: "$_id.year",
+                    subject: { $arrayElemAt: ["$courseDetails.name", 0] },
+                    averageGrade: 1
+                }
+            },
+            { $sort: { year: 1, subject: 1 } }
+        ]);
 
-module.exports = {getAll, create, update, deleteGrade, getScolarityYears};
+        res.status(200).send(results);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send({ message: "Failed to fetch average grades", error: err.message });
+    }
+}
+
+module.exports = { getAll, create, update, deleteGrade, getScolarityYears, getAvgGradePerSubjectPerYear };
