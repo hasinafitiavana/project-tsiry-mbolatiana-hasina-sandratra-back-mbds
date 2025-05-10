@@ -3,7 +3,7 @@ let User = require('../model/user');
 
 
 function getAll(req, res) {
-    User.find().then((students) => {
+    User.find({ roles: 'student' }).then((students) => {
         res.send(students);
     }).catch((err) => {
         res.send(err);
