@@ -94,6 +94,53 @@ router.post("/", async function createUser(req, res) {
     }
 })
 
+router.put("/:id", async function updateUser(req, res) {
+    try {
+        const { id } = req.params;
+        const { email, firstname, lastname, role, password,password2 } = req.body;
+
+        const updateFields = {
+            email,
+            firstname,
+            lastname,
+            roles: [role]
+        };
+        if (password && password2) {
+               if (password !== password2) {
+                    throw new Error("Les mots de passe ne correspondent pas");
+                }
+            const hashedPassword = bcrypt.hashSync(password, 10);
+            const hashedPassword2 = bcrypt.hashSync(password2,10);
+            updateFields.password = hashedPassword;
+            updateFields.password2 = hashedPassword2;
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(id, updateFields, { new: true, runValidators: true });
+
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.delete("/:id", async function deleteUser(req, res) {
+    try {
+        const { id } = req.params;
+        const deletedUser = await User.findByIdAndDelete(id);
+        if (!deletedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        res.status(200).json({ message: 'User deleted successfully' });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 
 module.exports = router;
