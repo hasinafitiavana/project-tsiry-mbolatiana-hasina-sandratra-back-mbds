@@ -23,7 +23,6 @@ async function permissionMiddleware(req, res, next) {
     if (!user || !user.roles) {
         return res.status(403).json({ message: "Access denied. No roles assigned." });
     }
-    console.log({user, roles:user.roles});
     const action = METHOD_TO_PERMISSION[req.method];
     const resource = extractResourceFromPath(req.path);
     const roles = await Role.getCachedRoles();
