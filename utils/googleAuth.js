@@ -5,7 +5,7 @@ const User = require('../model/user'); // Import du modèle User
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `${process.env.BACKEND_URL}/auth/google/callback`
+    callbackURL: `/auth/google/callback`
   },
   async function(accessToken, refreshToken, profile, done) {
     try {
