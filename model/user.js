@@ -87,11 +87,11 @@ UserSchema.statics.getStudentRank = async function (studentId, year = null) {
         const allRanks = await this.getAllStudentsRanks(year);
         const studentRank = allRanks.find(s => s._id === studentId);
         
-
         if (studentRank) {
             return { rank: studentRank.rank, total: studentRank.total };
         } else {
-            throw new Error('Student not found in the ranking');
+            // Return default values instead of throwing an error
+            return { rank: null, total: 0 };
         }
     } catch (err) {
         throw new Error(`Failed to calculate student rank: ${err.message}`);
