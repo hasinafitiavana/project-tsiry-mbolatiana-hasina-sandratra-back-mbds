@@ -15,8 +15,8 @@ function isOwnResource(req, user) {
 async function permissionMiddleware(req, res, next) {
     const {user}=req;
     // console.log({user, roles:user.roles});
-    
-    const NON_SECURE_PATH = ["/api/users/login","/auth/google","/auth/google/callback"];
+
+    const NON_SECURE_PATH = ["/api/users/login","/auth/google","/auth/google/callback","/api/users/send-email-forgot-password"];
     if (NON_SECURE_PATH.includes(req.path)) {
         return next();
     }

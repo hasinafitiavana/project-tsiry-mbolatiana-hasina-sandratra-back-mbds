@@ -3,6 +3,8 @@ const router = Router();
 const User = require("../model/user");
 const { generateAccessToken, generateRefreshToken } = require("../utils/auth");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
 
 router.post('/login', async function login(req, res) {
     try {
@@ -138,6 +140,72 @@ router.delete("/:id", async function deleteUser(req, res) {
     } catch (error) {
         console.error(error.message);
         res.status(500).json({ error: error.message });
+    }
+});
+
+router.post("/send-email-forgot-password", async function (req, res) {
+    try {
+        const { email } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+
+        const token = jwt.sign(
+            { _id: user._id, email: user.email },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: "5m" }
+        );
+
+        const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: process.env.MAIL,
+                pass: process.env.MAIL_PASSWORD
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
+
+        await transporter.sendMail({
+            from: process.env.MAIL,
+            to: user.email,
+            subject: "Réinitialisation de votre mot de passe",
+            html: `<p>Pour réinitialiser votre mot de passe, cliquez sur ce lien : <a href="${resetLink}">${resetLink}</a></p>`
+        });
+
+        res.json({ message: "Email de réinitialisation envoyé" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erreur lors de l'envoi de l'email" });
+    }
+});
+
+router.post("/reset-password", async function (req, res) {
+    try {
+        const { token, password, confirmPassword } = req.body;
+        if (!token) return res.status(400).json({ error: "Token manquant" });
+        if (password !== confirmPassword) return res.status(400).json({ error: "Les mots de passe ne correspondent pas" });
+
+        let payload;
+        try {
+            payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        } catch (err) {
+            return res.status(400).json({ error: "Token invalide ou expiré" });
+        }
+
+        const hashedPassword = bcrypt.hashSync(password, 10);
+        const hashedconfirmPassword = bcrypt.hashSync(confirmPassword, 10);
+
+        await User.findByIdAndUpdate(payload._id, {
+            password: hashedPassword,
+            password2: hashedconfirmPassword
+        });
+
+        res.json({ message: "Mot de passe réinitialisé avec succès" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Erreur lors de la réinitialisation" });
     }
 });
 
