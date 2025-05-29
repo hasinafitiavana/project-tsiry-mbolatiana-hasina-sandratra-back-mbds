@@ -115,7 +115,7 @@ app.get('/auth/google/callback',
     const { password, ...u } = user.toObject();
     const accessToken = generateAccessToken(u);
     const refreshToken = generateRefreshToken(u);
-    res.redirect(`http://localhost:5173/oauth-callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+    res.redirect(`${process.env.FRONTEND_URL}/oauth-callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
   });
 
 app.route(prefix + '/grades/years')
