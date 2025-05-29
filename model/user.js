@@ -90,7 +90,6 @@ UserSchema.statics.getStudentRank = async function (studentId, year = null) {
         if (studentRank) {
             return { rank: studentRank.rank, total: studentRank.total };
         } else {
-            // Return default values instead of throwing an error
             return { rank: null, total: 0 };
         }
     } catch (err) {
